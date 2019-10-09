@@ -7,7 +7,7 @@ exports.up = function (knex) {
     articleTable.integer('votes').defaultTo(0)
     articleTable.string('topic').references('topics.slug')
     articleTable.string('author').references('users.username')
-    articleTable.timestamp('timestamp').defaultTo(knex.fn.now(6))
+    articleTable.timestamp('created_at').defaultTo(knex.fn.now(6))
   })
 };
 

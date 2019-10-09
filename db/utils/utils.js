@@ -3,8 +3,7 @@ exports.formatDates = list => {
   return newList.map(obj => {
     const newObj = { ...obj }
     let formatDate = new Date(newObj.created_at)
-    newObj.timestamp = formatDate;
-    delete newObj.created_at
+    newObj.created_at = formatDate;
     return newObj;
   })
 

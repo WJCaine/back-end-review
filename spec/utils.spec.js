@@ -10,7 +10,7 @@ describe('formatDates', () => {
   it('takes an array as an argument and returns an array', () => {
     expect(formatDates([])).to.eql([])
   })
-  it('takes a unix time as an input and outputs something in the form psql requires, with created_at property renamed to timestamp', () => {
+  it('takes a unix time as an input and outputs something in the form psql requires, with created_at property renamed to created_at', () => {
     const singleObjArr = [{
       body:
         'The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky.',
@@ -22,7 +22,7 @@ describe('formatDates', () => {
 
 
     const expectedDate = new Date(1479818163389)
-    expect(formatDates(singleObjArr)[0].timestamp).to.eql(expectedDate)
+    expect(formatDates(singleObjArr)[0].created_at).to.eql(expectedDate)
   })
   it('does the same for multi-object arrays', () => {
     const multiObjArr = [{
@@ -43,8 +43,8 @@ describe('formatDates', () => {
     }]
     const expectedDate = new Date(1479818163389)
     const expectedDate2 = new Date(1445923595321)
-    expect(formatDates(multiObjArr)[0].timestamp).to.eql(expectedDate)
-    expect(formatDates(multiObjArr)[1].timestamp).to.eql(expectedDate2)
+    expect(formatDates(multiObjArr)[0].created_at).to.eql(expectedDate)
+    expect(formatDates(multiObjArr)[1].created_at).to.eql(expectedDate2)
   })
   it('does not mutate the original array', () => {
     const original = [{
