@@ -11,6 +11,11 @@ describe("app", () => {
   beforeEach(() => {
     return connection.seed.run();
   });
+  it("ALL:405 when given any valid URL with an unpermitted method", () => {
+    return request(app)
+      .delete("/api/articles")
+      .expect(405);
+  });
   it('ALL:404 When given any invalid URL returns an error 404 with message "the requested URL was not found on this server"', () => {
     return request(app)
       .get("/BADURL")
@@ -146,8 +151,8 @@ describe("app", () => {
           return request(app)
             .get("/api/articles/1")
             .expect(200)
-            .then(({ body }) => {
-              expect(body).to.eql({
+            .then(({ body: { article } }) => {
+              expect(article).to.eql({
                 article_id: 1,
                 title: "Living in the shadow of a great man",
                 topic: "mitch",
@@ -180,8 +185,8 @@ describe("app", () => {
             .patch("/api/articles/1")
             .send({ inc_votes: 1 })
             .expect(201)
-            .then(({ body }) => {
-              expect(body).to.eql({
+            .then(({ body: { article } }) => {
+              expect(article).to.eql({
                 article_id: 1,
                 title: "Living in the shadow of a great man",
                 topic: "mitch",
@@ -219,8 +224,8 @@ describe("app", () => {
               body: "the cheese stands alone"
             })
             .expect(201)
-            .then(({ body }) => {
-              expect(body).to.have.keys(
+            .then(({ body: { comment } }) => {
+              expect(comment).to.have.keys(
                 "article_id",
                 "author",
                 "body",
@@ -228,9 +233,9 @@ describe("app", () => {
                 "created_at",
                 "votes"
               );
-              expect(body.votes).to.equal(0);
-              expect(body.body).to.equal("the cheese stands alone");
-              expect(body.article_id).to.equal(1);
+              expect(comment.votes).to.equal(0);
+              expect(comment.body).to.equal("the cheese stands alone");
+              expect(comment.article_id).to.equal(1);
             });
         });
         it("POST:404 , throws a 404 when asked to add comment to article which does not exist", () => {
@@ -296,6 +301,30 @@ describe("app", () => {
               );
             });
         });
+        it("GET:404 /comments, given an article_id in the correct format but which does not exist throws a 404", () => {
+          return request(app)
+            .get("/api/articles/9999/comments")
+            .expect(404)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("No such article found");
+            });
+        });
+        it("GET:200 returns an empty array when given a valid article_id which has no comments.", () => {
+          return request(app)
+            .get("/api/articles/12/comments")
+            .expect(200)
+            .then(({ body: { comments } }) => {
+              expect(comments).to.eql([]);
+            });
+        });
+        it('GET:400 throws a 400 with "Invalid input syntax in request" when given an article_id of the wrong format ', () => {
+          return request(app)
+            .get("/api/articles/potato/comments")
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Invalid input syntax in request");
+            });
+        });
         it("GET:200 /comments , accepts a sort_by query which allows us to order the comments by a specific key defaulting to created_at", () => {
           return request(app)
             .get("/api/articles/1/comments?sort_by=votes")
@@ -311,6 +340,18 @@ describe("app", () => {
             .then(({ body: { comments } }) => {
               expect(comments).to.be.sortedBy("created_at", {
                 descending: true
+              });
+            });
+        });
+        it("GET:200 /comments, ignores any additional queries or invalid queries,  using the default value instead.", () => {
+          return request(app)
+            .get(
+              "/api/articles/1/comments?order=asdf&sort_by=ghjk&whywouldyou=dothis"
+            )
+            .expect(200)
+            .then(({ body: { comments } }) => {
+              expect(comments).to.be.sortedBy("created_at", {
+                ascending: true
               });
             });
         });
@@ -355,7 +396,20 @@ describe("app", () => {
           .expect(204);
       });
       it("DELETE:404 , returns a 404 when no comment with that ID exists.", () => {
-        return request(app).delete("/api/comments/999");
+        return request(app)
+          .delete("/api/comments/999")
+          .expect(404)
+          .then(({ body }) => {
+            expect(body.msg).to.equal("Item to be deleted could not be found");
+          });
+      });
+      it("DELETE:400, returns a 400 when given a comment with an invalid ID", () => {
+        return request(app)
+          .delete("/api/comments/banana")
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.equal("Invalid input syntax in request");
+          });
       });
     });
   });

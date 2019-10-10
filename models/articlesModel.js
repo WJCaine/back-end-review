@@ -29,7 +29,6 @@ exports.updateArticle = ({ article_id }, { inc_votes }) => {
     .from("articles")
     .where("article_id", int_article_id)
     .then(article => {
-      console.log(article);
       if (!article.length)
         return Promise.reject({ msg: "No such article found", status: 404 });
 
@@ -60,11 +59,24 @@ exports.insertArticleComment = ({ article_id }, body) => {
 };
 
 exports.selectArticleComments = ({ article_id }, queries) => {
-  return connection
+  const columns = ["comment_id", "votes", "created_at", "author", "body"];
+  const { selectArticle } = exports;
+  if (!columns.includes(queries.sort_by)) queries.sort_by = "created_at";
+  const commentsRequest = connection
     .select("comment_id", "votes", "created_at", "author", "body")
     .from("comments")
     .where({ article_id: article_id })
     .orderBy(queries.sort_by || "created_at", queries.order);
+
+  return Promise.all([commentsRequest, selectArticle, article_id]).then(
+    ([comments, selectArticle, article_id]) => {
+      if (!comments.length) {
+        return selectArticle({ article_id }).then(() => {
+          return [];
+        });
+      } else return comments;
+    }
+  );
 };
 
 exports.selectArticles = queries => {

@@ -23,3 +23,7 @@ exports.unhandledErrorWarning = (err, req, res, next) => {
     msg: "Unhandled error! Take a long hard look at what you've done."
   });
 };
+
+exports.send405 = (req, res, next) => {
+  res.sendStatus(405);
+};
