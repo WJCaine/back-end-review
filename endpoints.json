@@ -10,18 +10,55 @@
     }
   },
   "GET /api/articles": {
-    "description": "serves an array of all topics",
+    "description": "serves an array of all articles",
     "queries": ["author", "topic", "sort_by", "order"],
     "exampleResponse": {
       "articles": [
-        {
-          "title": "Seafood substitutions are increasing",
-          "topic": "cooking",
-          "author": "weegembump",
-          "body": "Text from the article..",
-          "created_at": 1527695953341
-        }
+      {
+  "article_id": 1,
+  "title": "Living in the shadow of a great man",
+  "body": "I find this existence challenging",
+  "votes": 100,
+  "topic": "mitch",
+  "author": "butter_bridge",
+  "created_at": "2018-11-15T12: 21: 54.171Z",
+  "comment_count": 13
+      }
       ]
     }
+  },
+  "GET /api/users:/:username": {
+    "description": "serves an object containing information about user, specified by id",
+    "queries": [],
+    "exampleRespone": {
+      "user": {
+        "username": "icellusedkars",
+        "name": "sam",
+        "avatar_url": " https: //github.com/WJCaine/back-end-review"
+      }
+    }
+  },
+  "GET /api/articles/:article:id": {
+    "description": "serves up a single object containing an article, specified by id",
+    "queries": [],
+    "exampleRespone": {
+      "article": {
+        "article_id": 1,
+        "title": "Living in the shadow of a great man",
+        "body": "I find this existence challenging",
+        "votes": 100,
+        "topic": "mitch",
+        "author": "butter_bridge",
+        "created_at": "2018-11-15T12: 21: 54.171Z",
+        "comment_count": 13
+      }
+    }
+  },
+  "Patch /api/articles/:article_id": {
+    "description": "recieves an object with only a key of inc_votes and updates the vote count of the given article",
+    "exampleBody": {
+      "inc_votes": 5
+    },
+    "exampleRespone" : 
   }
 }

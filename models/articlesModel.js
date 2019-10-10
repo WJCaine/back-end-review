@@ -1,4 +1,6 @@
 const connection = require("../db/connection");
+const { selectTopic } = require("./topicsModel");
+const { selectUser } = require("./usersModel");
 
 exports.selectArticle = ({ article_id }) => {
   const int_article_id = parseInt(article_id);
@@ -50,6 +52,11 @@ exports.updateArticle = ({ article_id }, { inc_votes }) => {
 };
 
 exports.insertArticleComment = ({ article_id }, body) => {
+  if (!body.username || !body.body)
+    return Promise.reject({
+      msg: "Invalid input syntax in request",
+      status: 400
+    });
   return connection("comments")
     .insert(
       { author: body.username, body: body.body, article_id: article_id },
@@ -62,6 +69,8 @@ exports.selectArticleComments = ({ article_id }, queries) => {
   const columns = ["comment_id", "votes", "created_at", "author", "body"];
   const { selectArticle } = exports;
   if (!columns.includes(queries.sort_by)) queries.sort_by = "created_at";
+  if (queries.order !== "asc" && queries.order !== "desc")
+    queries.order = "desc";
   const commentsRequest = connection
     .select("comment_id", "votes", "created_at", "author", "body")
     .from("comments")
@@ -90,7 +99,10 @@ exports.selectArticles = queries => {
     "comment_count"
   ];
   if (!columns.includes(queries.sort_by)) queries.sort_by = undefined;
-  return connection
+  if (!queries.order) queries.order = "desc";
+  if (queries.order !== "asc" && queries.order !== "desc")
+    queries.order = "desc";
+  const articlesQuery = connection
     .select(
       "articles.article_id",
       "articles.author",
@@ -107,13 +119,13 @@ exports.selectArticles = queries => {
     .modify(query => {
       if (queries.author) query.where({ "articles.author": queries.author });
       if (queries.topic) query.where({ topic: queries.topic });
-    })
-    .then(articles => {
-      if (!articles.length)
-        return Promise.reject({
-          msg: "No results matching this query.",
-          status: 404
-        });
-      else return articles;
     });
+  return Promise.all([articlesQuery, queries]).then(([articles, queries]) => {
+    if (!articles.length) {
+      return Promise.all([
+        selectTopic(queries.topic),
+        selectUser({ username: queries.author })
+      ]).then(() => []);
+    } else return articles;
+  });
 };

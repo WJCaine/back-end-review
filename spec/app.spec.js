@@ -91,7 +91,7 @@ describe("app", () => {
           .get("/api/articles?sort_by=title")
           .expect(200)
           .then(({ body: { articles } }) => {
-            expect(articles).to.be.sortedBy("title");
+            expect(articles).to.be.sortedBy("title", { descending: true });
           });
       });
       it("GET:200 if given a sorted_by query for non-existant column, revert to default", () => {
@@ -99,23 +99,23 @@ describe("app", () => {
           .get("/api/articles?sort_by=badColumn")
           .expect(200)
           .then(({ body: { articles } }) => {
-            expect(articles).to.be.sortedBy("created_at");
+            expect(articles).to.be.sortedBy("created_at", { descending: true });
           });
       });
-      it("GET:200 , ignores any order queries other than asc or desc (defaults to asc)", () => {
+      it("GET:200 , ignores any order queries other than asc or desc (defaults to desc)", () => {
         return request(app)
           .get("/api/articles?order=badQuery")
           .expect(200)
           .then(({ body: { articles } }) => {
-            expect(articles).to.be.sortedBy("created_at");
+            expect(articles).to.be.sortedBy("created_at", { descending: true });
           });
       });
       it("GET:200 , accepts an order query, defaulting to ascending", () => {
         return request(app)
-          .get("/api/articles?order=desc")
+          .get("/api/articles?order=asc")
           .expect(200)
           .then(({ body: { articles } }) => {
-            expect(articles).to.be.sortedBy("created_at", { descending: true });
+            expect(articles).to.be.sortedBy("created_at", { ascending: true });
           });
       });
       it("GET:200 , accepts an author query, showing only articles by a given author", () => {
@@ -138,12 +138,20 @@ describe("app", () => {
             });
           });
       });
-      it('GET:404 - if a query will return an empty array - throws a 404 "No results matching this query."', () => {
+      it("GET:404 - if a query contains a topic of a user which does not exist throw 404 with message dependent on what is missing", () => {
         return request(app)
-          .get("/api/articles?author=bigcheesestilton")
+          .get("/api/articles?topic=kitten")
           .expect(404)
           .then(({ body }) => {
-            expect(body.msg).to.equal("No results matching this query.");
+            expect(body).to.contain.key("msg");
+          });
+      });
+      it("GET:200 - if a query would be empty but has a valid topic and author query simply returns an emptnpmy array", () => {
+        return request(app)
+          .get("/api/articles?topic=cats&author=icellusedkars")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles).to.eql([]);
           });
       });
       describe("/:article_id", () => {
@@ -180,11 +188,11 @@ describe("app", () => {
               expect(body.msg).to.equal("Invalid input syntax in request");
             });
         });
-        it("PATCH:201 allows user to update the vote count on a given article", () => {
+        it("PATCH:200 allows user to update the vote count on a given article", () => {
           return request(app)
             .patch("/api/articles/1")
             .send({ inc_votes: 1 })
-            .expect(201)
+            .expect(200)
             .then(({ body: { article } }) => {
               expect(article).to.eql({
                 article_id: 1,
@@ -286,6 +294,17 @@ describe("app", () => {
               expect(body.msg).to.equal("Invalid input syntax in request");
             });
         });
+        it("POST:400, throws 400 when request does not include all required keys", () => {
+          return request(app)
+            .post("/api/articles/1/comments")
+            .send({
+              author: "icellusedkars"
+            })
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Invalid input syntax in request");
+            });
+        });
         it("GET:200 /comments, given an article id can retrieve all comments assosciated with that article", () => {
           return request(app)
             .get("/api/articles/1/comments")
@@ -330,16 +349,16 @@ describe("app", () => {
             .get("/api/articles/1/comments?sort_by=votes")
             .expect(200)
             .then(({ body: { comments } }) => {
-              expect(comments).to.be.sortedBy("votes");
+              expect(comments).to.be.sortedBy("votes", { descending: true });
             });
         });
         it("GET:200 /comments , also accepts an order parameter, which may be set to ascending or descending and defaults to ascending.", () => {
           return request(app)
-            .get("/api/articles/1/comments?order=desc")
+            .get("/api/articles/1/comments?order=asc")
             .expect(200)
             .then(({ body: { comments } }) => {
               expect(comments).to.be.sortedBy("created_at", {
-                descending: true
+                ascending: true
               });
             });
         });
@@ -351,20 +370,29 @@ describe("app", () => {
             .expect(200)
             .then(({ body: { comments } }) => {
               expect(comments).to.be.sortedBy("created_at", {
-                ascending: true
+                descending: true
               });
             });
         });
       });
     });
-    describe("/comments", () => {
-      it("PATCH:201 , takes an object containing inc_votes and updates vote count by that amount.", () => {
+    describe.only("/comments", () => {
+      it("PATCH:200 , takes an object containing inc_votes and updates vote count by that amount.", () => {
         return request(app)
           .patch("/api/comments/1")
           .send({ inc_votes: 10 })
-          .expect(201)
+          .expect(200)
+          .then(({ body: { comment } }) => {
+            expect(comment.votes).to.equal(26);
+          });
+      });
+      it("PATCH:404 , throws a 404 when given a valid comment_id which does not exist", () => {
+        return request(app)
+          .patch("/api/comments/9999")
+          .send({ inc_votes: 10 })
+          .expect(404)
           .then(({ body }) => {
-            expect(body.votes).to.equal(26);
+            expect(body.msg).to.equal("No such comment found");
           });
       });
       it('PATCH:400 , if given a body with key in incorrect format will throw a 400 error "invalid formatting on body of request"', () => {

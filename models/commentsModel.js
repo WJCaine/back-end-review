@@ -11,6 +11,11 @@ exports.updateComment = ({ comment_id }, { inc_votes }) => {
     .select("votes")
     .from("comments")
     .where("comment_id", int_comment_id)
+    .then(body => {
+      if (!body.length)
+        return Promise.reject({ msg: "No such comment found", status: 404 });
+      else return body;
+    })
     .then(([{ votes }]) => {
       return connection("comments")
         .where({ comment_id: int_comment_id })
