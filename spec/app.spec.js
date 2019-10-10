@@ -390,11 +390,6 @@ describe("app", () => {
           .delete("/api/comments/1")
           .expect(204);
       });
-      it("DELETE:204 , deletes an object giving no respone other than 204", () => {
-        return request(app)
-          .delete("/api/comments/1")
-          .expect(204);
-      });
       it("DELETE:404 , returns a 404 when no comment with that ID exists.", () => {
         return request(app)
           .delete("/api/comments/999")
