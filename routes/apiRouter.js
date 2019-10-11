@@ -1,4 +1,4 @@
-const { sendEndPoints } = require("../controllers/apiController");
+const { sendEndpoints } = require("../controllers/apiController");
 const usersRouter = require("./usersRouter");
 const topicsRouter = require("./topicsRouter");
 const articlesRouter = require("./articlesRouter");
@@ -9,9 +9,10 @@ apiRouter.use("/topics", topicsRouter);
 apiRouter.use("/users", usersRouter);
 apiRouter.use("/articles", articlesRouter);
 apiRouter.use("/comments", commentsRouter);
+console.log("what'sthis", sendEndPoints);
 apiRouter
   .route("/")
-  .get(sendEndPoints)
+  .get(sendEndpoints)
   .all(send405);
 
 module.exports = apiRouter;
