@@ -9,7 +9,6 @@ apiRouter.use("/topics", topicsRouter);
 apiRouter.use("/users", usersRouter);
 apiRouter.use("/articles", articlesRouter);
 apiRouter.use("/comments", commentsRouter);
-console.log("what'sthis", sendEndPoints);
 apiRouter
   .route("/")
   .get(sendEndpoints)

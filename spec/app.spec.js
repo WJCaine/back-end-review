@@ -251,7 +251,6 @@ describe("app", () => {
             })
             .expect(201)
             .then(({ body: { comment } }) => {
-              console.log(comment);
               expect(comment).to.have.keys(
                 "article_id",
                 "author",
