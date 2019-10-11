@@ -404,7 +404,7 @@ describe("app", () => {
             expect(comment.votes).to.equal(26);
           });
       });
-      it.only("PATCH:200 , if given a request with no body simply returns the unchanged comment to the user", () => {
+      it("PATCH:200 , if given a request with no body simply returns the unchanged comment to the user", () => {
         return request(app)
           .patch("/api/comments/1")
           .send()
