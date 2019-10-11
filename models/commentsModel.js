@@ -1,5 +1,14 @@
 const connection = require("../db/connection");
 
+exports.selectComment = ({ comment_id }) => {
+  const int_comment_id = parseInt(comment_id);
+  return connection
+    .select("*")
+    .from("comments")
+    .where("comment_id", int_comment_id)
+    .then(comment => comment[0]);
+};
+
 exports.updateComment = ({ comment_id }, { inc_votes }) => {
   if (!inc_votes)
     return Promise.reject({

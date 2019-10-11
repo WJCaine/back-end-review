@@ -15,11 +15,20 @@ exports.getArticle = (req, res, next) => {
 };
 
 exports.getPatchedArticle = (req, res, next) => {
-  updateArticle(req.params, req.body)
-    .then(article => {
-      res.status(200).send({ article });
-    })
-    .catch(next);
+  console.log(Object.keys(req.body));
+  if (!Object.keys(req.body).length) {
+    selectArticle(req.params)
+      .then(article => {
+        res.status(200).send({ article });
+      })
+      .catch(next);
+  } else {
+    updateArticle(req.params, req.body)
+      .then(article => {
+        res.status(200).send({ article });
+      })
+      .catch(next);
+  }
 };
 
 exports.getPostedArticleComment = (req, res, next) => {

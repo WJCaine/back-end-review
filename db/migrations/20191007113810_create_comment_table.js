@@ -5,7 +5,10 @@ exports.up = function(knex) {
       .string("author")
       .references("users.username")
       .notNullable();
-    commentTable.integer("article_id").references("articles.article_id");
+    commentTable
+      .integer("article_id")
+      .references("articles.article_id")
+      .onDelete("CASCADE");
     commentTable.integer("votes").defaultTo(0);
     commentTable.timestamp("created_at").defaultTo(knex.fn.now(6));
     commentTable.text("body").notNullable();

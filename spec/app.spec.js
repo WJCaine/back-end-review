@@ -206,6 +206,24 @@ describe("app", () => {
               });
             });
         });
+        it("PATCH:200 , if given no body simply returns the unchanged comment to the user", () => {
+          return request(app)
+            .patch("/api/articles/1")
+            .send()
+            .expect(200)
+            .then(({ body: { article } }) => {
+              expect(article).to.eql({
+                article_id: 1,
+                title: "Living in the shadow of a great man",
+                topic: "mitch",
+                author: "butter_bridge",
+                body: "I find this existence challenging",
+                created_at: "2018-11-15T12:21:54.171Z",
+                comment_count: 13,
+                votes: 100
+              });
+            });
+        });
         it("PATCH:404 , throws a 404 when user tries to update a article which does not exist", () => {
           return request(app)
             .patch("/api/articles/20000")
@@ -376,7 +394,7 @@ describe("app", () => {
         });
       });
     });
-    describe.only("/comments", () => {
+    describe("/comments", () => {
       it("PATCH:200 , takes an object containing inc_votes and updates vote count by that amount.", () => {
         return request(app)
           .patch("/api/comments/1")
@@ -384,6 +402,15 @@ describe("app", () => {
           .expect(200)
           .then(({ body: { comment } }) => {
             expect(comment.votes).to.equal(26);
+          });
+      });
+      it.only("PATCH:200 , if given a request with no body simply returns the unchanged comment to the user", () => {
+        return request(app)
+          .patch("/api/comments/1")
+          .send()
+          .expect(200)
+          .then(({ body: { comment } }) => {
+            expect(comment.votes).to.equal(16);
           });
       });
       it("PATCH:404 , throws a 404 when given a valid comment_id which does not exist", () => {

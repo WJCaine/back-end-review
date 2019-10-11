@@ -1,11 +1,27 @@
-const { updateComment, deleteComment } = require("../models/commentsModel");
+const {
+  updateComment,
+  deleteComment,
+  selectComment
+} = require("../models/commentsModel");
+
+exports.sendComment = (req, res, next) => {
+  selectComment(req.params).then(comment => {
+    res.status(200).send({ comment });
+  });
+};
 
 exports.sendPatchedComment = (req, res, next) => {
-  updateComment(req.params, req.body)
-    .then(comment => {
+  if (!Object.keys(req.body).length) {
+    selectComment(req.params).then(comment => {
       res.status(200).send({ comment });
-    })
-    .catch(next);
+    });
+  } else {
+    updateComment(req.params, req.body)
+      .then(comment => {
+        res.status(200).send({ comment });
+      })
+      .catch(next);
+  }
 };
 
 exports.sendDeleteComment = (req, res, next) => {
