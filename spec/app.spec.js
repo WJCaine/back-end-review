@@ -86,6 +86,22 @@ describe("app", () => {
             );
           });
       });
+      it("GET:200 , accepts a limit query which limits the maximum amount of articles which will be returned, defaulting to 10 ", () => {
+        return request(app)
+          .get("/api/articles?limit=1")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles.length).to.be.equal(1);
+          });
+      });
+      it("GET:200 ,accepts a page number query which will offset the displayed data by limit * page number ", () => {
+        return request(app)
+          .get("/api/articles?p=2")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles.length).to.be.equal(2);
+          });
+      });
       it("GET:200 , accepts a sort_by query , whcih defaults to created_at", () => {
         return request(app)
           .get("/api/articles?sort_by=title")
@@ -110,7 +126,7 @@ describe("app", () => {
             expect(articles).to.be.sortedBy("created_at", { descending: true });
           });
       });
-      it("GET:200 , accepts an order query, defaulting to ascending", () => {
+      it("GET:200 , accepts an order query, defaulting to descending", () => {
         return request(app)
           .get("/api/articles?order=asc")
           .expect(200)

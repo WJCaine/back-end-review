@@ -98,10 +98,12 @@ exports.selectArticles = queries => {
     "topic",
     "comment_count"
   ];
-  if (!columns.includes(queries.sort_by)) queries.sort_by = undefined;
-  if (!queries.order) queries.order = "desc";
-  if (queries.order !== "asc" && queries.order !== "desc")
+  if (!columns.includes(queries.sort_by)) queries.sort_by = "created_at";
+  if (!queries.limit) queries.limit = 10;
+  if (!queries.order || (queries.order !== "asc" && queries.order !== "desc"))
     queries.order = "desc";
+
+  if (!queries.p) queries.p = 1;
   const articlesQuery = connection
     .select(
       "articles.article_id",
@@ -115,7 +117,9 @@ exports.selectArticles = queries => {
     .leftJoin("comments", "comments.article_id", "articles.article_id")
     .groupBy("articles.article_id")
     .count({ comment_count: "articles.article_id" })
-    .orderBy(queries.sort_by || "created_at", queries.order)
+    .orderBy(queries.sort_by, queries.order)
+    .limit(queries.limit)
+    .offset(queries.limit * (queries.p - 1))
     .modify(query => {
       if (queries.author) query.where({ "articles.author": queries.author });
       if (queries.topic) query.where({ topic: queries.topic });
